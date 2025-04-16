@@ -4,7 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-// Main Connect Four game class
+// Main Connect Four game logic class
 class ConnectFour
 {
     private GameBoard board;
@@ -13,47 +13,49 @@ class ConnectFour
     private bool aiEnabled;
     private List<string> winHistory;
 
-    // Constructor initializes board, players, and loads win history
     public ConnectFour(bool aiOpponent = false)
     {
-        board = new GameBoard();
+        board = new GameBoard(); // Create new game board
         players = new Player[]
         {
-            new Player('X'),
-            aiOpponent ? new AIPlayer('O') : new Player('O')
+            new Player('X'), // Player 1
+            aiOpponent ? new AIPlayer('O') : new Player('O') // Player 2 or AI
         };
         currentPlayerIndex = 0;
         aiEnabled = aiOpponent;
         winHistory = new List<string>();
 
-        players[0].SetName(); // Ask for name for Player X
+        // Set player names
+        players[0].SetName();
         if (!aiEnabled)
         {
-            players[1].SetName(); // Ask for name for Player O (unless it's AI)
+            players[1].SetName();
         }
 
-        LoadWinHistory(); // Load past win records from file
+        LoadWinHistory(); // Load previous win history from file
     }
 
-    // Core gameplay loop
     public void Play()
     {
+        board = new GameBoard(); // Reset board for new round
+        currentPlayerIndex = 0;  // Start with Player X
         bool gameOver = false;
+
         while (!gameOver)
         {
-            board.Display(); // Show the current board
+            board.Display(); // Show board
             int column;
 
+            // Handle AI turn
             if (players[currentPlayerIndex] is AIPlayer aiPlayer)
             {
-                // Let AI choose its move
                 column = aiPlayer.ChooseMove(board);
                 Console.WriteLine($"\n{aiPlayer.Name} chooses column {column}");
                 board.DropDisc(column, aiPlayer.Symbol);
             }
             else
             {
-                // Ask user for a valid move
+                // Human player's turn
                 Console.WriteLine($"\n{players[currentPlayerIndex].Name} (Player {players[currentPlayerIndex].Symbol}), choose a column (0-6): ");
                 while (!int.TryParse(Console.ReadLine(), out column) || board.DropDisc(column, players[currentPlayerIndex].Symbol) == -1)
                 {
@@ -61,7 +63,7 @@ class ConnectFour
                 }
             }
 
-            // Check for a win
+            // Check for win
             if (board.CheckWin(players[currentPlayerIndex].Symbol))
             {
                 board.Display();
@@ -70,7 +72,7 @@ class ConnectFour
                 SaveWinHistory();
                 gameOver = true;
             }
-            // Check for a draw
+            // Check for draw
             else if (board.IsFull())
             {
                 board.Display();
@@ -80,11 +82,11 @@ class ConnectFour
                 gameOver = true;
             }
 
-            currentPlayerIndex = (currentPlayerIndex + 1) % 2; // Switch turns
+            // Switch to next player
+            currentPlayerIndex = (currentPlayerIndex + 1) % 2;
         }
     }
 
-    // Show past winners and draws
     public void DisplayWinHistory()
     {
         Console.WriteLine("\nWin History:");
@@ -101,7 +103,7 @@ class ConnectFour
         }
     }
 
-    // Load history from file
+    // Load win history from file
     private void LoadWinHistory()
     {
         if (File.Exists("winHistory.txt"))
@@ -110,14 +112,24 @@ class ConnectFour
         }
     }
 
-    // Save updated history to file
+    // Save win history to file
     private void SaveWinHistory()
     {
         File.WriteAllLines("winHistory.txt", winHistory);
     }
+
+    // Clear win history (used when starting a new full game)
+    public void ResetHistory()
+    {
+        winHistory.Clear();
+        if (File.Exists("winHistory.txt"))
+        {
+            File.Delete("winHistory.txt");
+        }
+    }
 }
 
-// Board representation and logic
+// Represents the Connect Four game board
 class GameBoard
 {
     private char[,] grid;
@@ -129,10 +141,10 @@ class GameBoard
         grid = new char[Rows, Cols];
         for (int r = 0; r < Rows; r++)
             for (int c = 0; c < Cols; c++)
-                grid[r, c] = '.'; // Initialize all cells as empty
+                grid[r, c] = '.'; // Empty cell
     }
 
-    // Display the board
+    // Display the board in console
     public void Display()
     {
         Console.WriteLine();
@@ -144,7 +156,7 @@ class GameBoard
             }
             Console.WriteLine();
         }
-        Console.WriteLine("0 1 2 3 4 5 6");
+        Console.WriteLine("0 1 2 3 4 5 6"); // Column indexes
     }
 
     // Drop a disc into a column
@@ -157,13 +169,13 @@ class GameBoard
             if (grid[r, column] == '.')
             {
                 grid[r, column] = symbol;
-                return r; // Return the row where the disc landed
+                return r;
             }
         }
-        return -1; // Column is full
+        return -1; // Column full
     }
 
-    // Undo the disc at a specific location (for AI trial moves)
+    // Undo a disc placement (used by AI)
     public bool UndoDrop(int row, int column)
     {
         if (row >= 0 && row < Rows && column >= 0 && column < Cols && grid[row, column] != '.')
@@ -174,28 +186,28 @@ class GameBoard
         return false;
     }
 
-    // Check if a player has won
+    // Check if current player has won
     public bool CheckWin(char symbol)
     {
-        // Horizontal
+        // Horizontal check
         for (int r = 0; r < Rows; r++)
             for (int c = 0; c < Cols - 3; c++)
                 if (grid[r, c] == symbol && grid[r, c + 1] == symbol && grid[r, c + 2] == symbol && grid[r, c + 3] == symbol)
                     return true;
 
-        // Vertical
+        // Vertical check
         for (int r = 0; r < Rows - 3; r++)
             for (int c = 0; c < Cols; c++)
                 if (grid[r, c] == symbol && grid[r + 1, c] == symbol && grid[r + 2, c] == symbol && grid[r + 3, c] == symbol)
                     return true;
 
-        // Diagonal down-right
+        // Diagonal (down-right)
         for (int r = 0; r < Rows - 3; r++)
             for (int c = 0; c < Cols - 3; c++)
                 if (grid[r, c] == symbol && grid[r + 1, c + 1] == symbol && grid[r + 2, c + 2] == symbol && grid[r + 3, c + 3] == symbol)
                     return true;
 
-        // Diagonal up-right
+        // Diagonal (up-right)
         for (int r = 3; r < Rows; r++)
             for (int c = 0; c < Cols - 3; c++)
                 if (grid[r, c] == symbol && grid[r - 1, c + 1] == symbol && grid[r - 2, c + 2] == symbol && grid[r - 3, c + 3] == symbol)
@@ -204,7 +216,7 @@ class GameBoard
         return false;
     }
 
-    // Check if the board is full (draw)
+    // Check if board is full (draw)
     public bool IsFull()
     {
         for (int c = 0; c < Cols; c++)
@@ -213,14 +225,14 @@ class GameBoard
         return true;
     }
 
-    // Return a list of available columns (for AI)
+    // Get columns that are not full
     public int[] GetAvailableColumns()
     {
         return Enumerable.Range(0, Cols).Where(c => grid[0, c] == '.').ToArray();
     }
 }
 
-// Player class (base for both human and AI)
+// Base class for both human and AI players
 class Player
 {
     public char Symbol { get; }
@@ -228,7 +240,7 @@ class Player
 
     public Player(char symbol) => Symbol = symbol;
 
-    // Prompt user to enter name and validate it
+    // Set player name with validation
     public virtual void SetName()
     {
         Console.WriteLine($"Enter a name for Player {Symbol}: ");
@@ -243,29 +255,29 @@ class Player
             }
             else
             {
-                Console.WriteLine("Invalid name. Name must be between 1 and 20 characters and cannot contain special characters. Try again: ");
+                Console.WriteLine("Invalid name. Name must be 1–20 characters and contain no special characters. Try again: ");
             }
         }
     }
 
-    // Check if name is valid (alphanumeric, <= 20 characters)
+    // Name must be alphanumeric or spaces
     private bool IsValidName(string name)
     {
         return !string.IsNullOrEmpty(name) && name.Length <= 20 && Regex.IsMatch(name, @"^[a-zA-Z0-9\s]+$");
     }
 }
 
-// AI player with basic strategy
+// AI player with simple strategy
 class AIPlayer : Player
 {
     private Random random = new Random();
 
     public AIPlayer(char symbol) : base(symbol)
     {
-        Name = "AI Bot"; // Default name
+        Name = "AI Bot";
     }
 
-    // Choose best move based on win/block/dumb strategy
+    // Choose best column (win, block, or random)
     public int ChooseMove(GameBoard board)
     {
         int[] availableColumns = board.GetAvailableColumns();
@@ -285,7 +297,7 @@ class AIPlayer : Player
         // Try to block opponent
         foreach (int col in availableColumns)
         {
-            int row = board.DropDisc(col, 'X'); // Assume opponent is X
+            int row = board.DropDisc(col, 'X'); // Assume opponent is 'X'
             if (row != -1 && board.CheckWin('X'))
             {
                 board.UndoDrop(row, col);
@@ -294,7 +306,7 @@ class AIPlayer : Player
             if (row != -1) board.UndoDrop(row, col);
         }
 
-        // Else choose random move
+        // Random move
         return availableColumns[random.Next(availableColumns.Length)];
     }
 }
@@ -312,12 +324,16 @@ class Program
         bool playAgain = true;
         while (playAgain)
         {
-            game.Play();
+            game.Play(); // Play a round
             game.DisplayWinHistory();
 
             Console.WriteLine("\nPlay another round? (yes/no): ");
             string response = Console.ReadLine()?.Trim().ToLower();
-            if (response != "yes")
+            if (response == "yes")
+            {
+                game.ResetHistory(); // Clear history if starting a new session
+            }
+            else
             {
                 playAgain = false;
             }
