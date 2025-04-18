@@ -1,0 +1,7 @@
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\bin\Debug\Final_Project_Connect4.exe.config
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\bin\Debug\Final_Project_Connect4.exe
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\bin\Debug\Final_Project_Connect4.pdb
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\obj\Debug\Final_Project_Connect4.csproj.AssemblyReference.cache
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\obj\Debug\Final_Project_Connect4.csproj.CoreCompileInputs.cache
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\obj\Debug\Final_Project_Connect4.exe
+C:\Users\MSI\source\repos\Final_Project_Connect4\Final_Project_Connect4\obj\Debug\Final_Project_Connect4.pdb
